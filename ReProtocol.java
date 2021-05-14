@@ -1,6 +1,8 @@
 package login;
 
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -92,12 +94,41 @@ abstract public class ReProtocol {
                     {totalLen=ResponseLen;}
         }
     }
+    /**
+     * Extracting Value from msg header
+     * @param beg only two value available
+     *            0 for length
+     *            4 for commandId
+     *            both are 4 bytes long
+     * @param data expected 8 bytes long
+     *             a standard header length
+     * */
     static public int getValueFromMsg(byte[]data,int beg){
         int value=0;
         for (int i = 0; i < CmdLen; i++) {
             value+=(((int)data[i+beg])<<((7-i)*8));
         }
         return value;
+    }
+    /**
+     * message read through DataInputStream by tcp socket
+     * @param DataIn the wrapper of socket input stream
+     * @return return the bytes array of msg
+     * */
+    static public byte[] msgRead(DataInputStream DataIn) throws IOException {
+        byte[] re=new byte[HeaderLen];
+        int len,sum=0;
+        do{ // receive header
+            len = DataIn.read(re,sum,re.length-sum);
+            sum+=len;
+        }while(sum!=re.length);
+        byte[] wholeRe=new byte[getValueFromMsg(re, 0)];
+        System.arraycopy(re, 0, wholeRe, 0, sum);
+        do {
+            len = DataIn.read(wholeRe, sum, wholeRe.length-sum);
+            sum+=len;
+        }while (sum!=wholeRe.length);
+        return wholeRe;
     }
     abstract public byte[] getBytes() throws RePException;
     public int prefill(byte[] msg,Command cmd){
@@ -125,6 +156,9 @@ abstract public class ReProtocol {
         }
         return HeaderLen;
     }
+    /**
+     * bytes fill before send
+     * */
     protected byte[] fillBase(String field,int len){
         byte[] msg=new byte[len];
         byte[] Bin=field.getBytes(StandardCharsets.UTF_8);

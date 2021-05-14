@@ -1,8 +1,6 @@
 package login;
 
 
-import java.nio.charset.StandardCharsets;
-
 abstract public class Request extends ReProtocol{
     public static class ReqMsg extends ReMsgBase{
         public String name,psw;
@@ -24,14 +22,17 @@ abstract public class Request extends ReProtocol{
     public ReqMsg getMsg(){
         return new ReqMsg(this.type,name,psw);
     }
+    /**
+     * get the msg for bytes array
+     * */
     public static ReqMsg getMsg(byte[]data) throws RePException {
         if(data.length!=ReProtocol.RequestLen){
             throw new RePException("Wrong-format Request");
         }else{
             byte[] name=new byte[UserNameLen];
             byte[] pass=new byte[UserPswLen];
-            System.arraycopy(data, HeaderLen, name, 0, HeaderLen);
-            System.arraycopy(data, HeaderLen+UserNameLen, pass, 0, UserPswLen);
+            System.arraycopy(data, HeaderLen, name, 0, UserNameLen); // copy a name
+            System.arraycopy(data, HeaderLen+UserNameLen, pass, 0, UserPswLen); // copy a psw
             return new ReqMsg(IntToCommand(getValueFromMsg(data, MsgLen)),decodeFill(name),decodeFill(pass));
         }
     }

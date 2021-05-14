@@ -38,20 +38,20 @@ public class RequestClient implements AutoCloseable{
         BufferedReader reader=new BufferedReader(new InputStreamReader(System.in));
         try {
             String tmp=reader.readLine();
-            while((tmp.length()!=1||tmp.equals(""))&&!UIcheck(tmp)){
+            while(!UIcheck(tmp)){
                 System.out.println("选项不存在");
                 tmp=reader.readLine();
             }
             if(tmp.charAt(0)==2)System.exit(0);
             login=tmp.charAt(0)==0;
             name=reader.readLine();
-            while(name==null||name.equals("")){
+            while("".equals(name)){
                 System.out.println("姓名不能为空 请重新输入");
                 name=reader.readLine();
 
             }
             pass=reader.readLine();
-            while(pass==null||pass.equals("")){
+            while("".equals(pass)){
                 System.out.println("密码不能为空 请重新输入");
                 pass=reader.readLine();
             }
@@ -116,11 +116,9 @@ public class RequestClient implements AutoCloseable{
         return this;
     }
     protected String recv() throws IOException, RePException {
-        DataInputStream BIS=new DataInputStream(socket.getInputStream());
-        byte[] resp=new byte[ReProtocol.ResponseLen];
-        int len=BIS.read(resp);
-        response=Response.getMsg(resp);
-        BIS.close();
+        DataInputStream DIS=new DataInputStream(socket.getInputStream());
+        response=Response.getMsg(ReProtocol.msgRead(DIS));
+        DIS.close();
         return response.desc;
     }
 

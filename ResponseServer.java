@@ -182,13 +182,14 @@ class ResponseWorker implements Runnable,AutoCloseable{
             e.printStackTrace();
         }
     }
-
+    /**
+     * get the request msg by tcp socket
+     * get header first
+     * */
     public ResponseWorker getRequest() throws IOException {
-        byte[] req=new byte[ReProtocol.RequestLen];
-        DataInputStream BIS=new DataInputStream(socket.getInputStream());
-        int len=BIS.read(req);
+        DataInputStream DIS=new DataInputStream(socket.getInputStream());
         try {
-            request=Request.getMsg(req);
+            request=Request.getMsg(ReProtocol.msgRead(DIS));
         } catch (RePException e) {
             e.printStackTrace();
         }
